@@ -508,9 +508,23 @@ fun AssessmentScreen(
                 
                 Button(
                     onClick = {
-                        // Aqui salvaria a avaliação
+                        val entry = MoodEntryEntity(
+                            date = LocalDate.now(),
+                            emoji = assessment.emojiChoice?.emoji ?: "🙂",
+                            mood = assessment.emojiChoice?.displayName ?: "Neutro",
+                            feeling = assessment.feelingChoice?.displayName ?: "Indefinido",
+                            workload = assessment.workloadLevel?.displayName ?: "Média",
+                            symptoms = assessment.hasSymptoms?.displayName ?: "Raramente",
+                            bossRelationship = assessment.relationshipWithBoss,
+                            colleaguesRelationship = assessment.relationshipWithColleagues,
+                            observations = assessment.observations
+                        )
+
+                        viewModel.addMoodEntry(entry)
+
                         onComplete()
-                    },
+                    }
+                    ,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Blue600),
                     enabled = assessment.emojiChoice != null && 
