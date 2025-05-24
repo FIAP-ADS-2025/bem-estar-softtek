@@ -10,7 +10,7 @@ import br.com.fiap.bemestarsofttek.database.dao.MoodEntryDao
 import br.com.fiap.bemestarsofttek.database.entity.MoodEntryEntity
 import br.com.fiap.bemestarsofttek.database.util.Converters
 
-@Database(entities = [MoodEntryEntity::class], version = 1)
+@Database(entities = [MoodEntryEntity::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 

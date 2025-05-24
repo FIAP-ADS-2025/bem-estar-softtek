@@ -15,8 +15,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.fiap.bemestarsofttek.model.*
 import br.com.fiap.bemestarsofttek.ui.theme.*
+import br.com.fiap.bemestarsofttek.database.entity.MoodEntryEntity
+import br.com.fiap.bemestarsofttek.viewmodel.MoodEntryViewModel
+import br.com.fiap.bemestarsofttek.viewmodel.MoodEntryViewModelFactory
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +30,10 @@ fun AssessmentScreen(
     onComplete: () -> Unit,
     onCancel: () -> Unit
 ) {
+    val context = LocalContext.current
+    val viewModel: MoodEntryViewModel = viewModel(
+        factory = MoodEntryViewModelFactory(context.applicationContext as android.app.Application)
+    )
     var assessment by remember { mutableStateOf(DailyAssessment()) }
     
     LazyColumn(
