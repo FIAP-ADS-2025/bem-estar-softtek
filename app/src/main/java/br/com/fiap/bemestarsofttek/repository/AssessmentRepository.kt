@@ -6,7 +6,7 @@ import br.com.fiap.bemestarsofttek.network.dto.AssessmentResponse
 import br.com.fiap.bemestarsofttek.network.service.AssessmentService
 
 class AssessmentRepository {
-    private val assessmentService: AssessmentService = ApiClient.createService()
+    private val assessmentService: AssessmentService = ApiClient.createService(AssessmentService::class.java)
     
     suspend fun getAllAssessments(token: String): Result<List<AssessmentResponse>> {
         return try {

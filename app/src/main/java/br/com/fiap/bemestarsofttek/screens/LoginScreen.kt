@@ -5,9 +5,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +33,7 @@ fun LoginScreen(
 ) {
     val context = LocalContext.current
     val authManager = remember { AuthManager(context) }
+    val coroutineScope = rememberCoroutineScope()
     
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -122,16 +126,18 @@ fun LoginScreen(
                             isLoading = true
                             errorMessage = ""
                             
-                            // Simular login (substituir por chamada real da API)
-                            authManager.login(email, password)
-                                .onSuccess { loginResponse ->
-                                    isLoading = false
-                                    onLoginSuccess()
-                                }
-                                .onFailure { exception ->
-                                    isLoading = false
-                                    errorMessage = exception.message ?: "Erro de login"
-                                }
+                            // Chamada da API com coroutines
+                            coroutineScope.launch {
+                                authManager.login(email, password)
+                                    .onSuccess { loginResponse ->
+                                        isLoading = false
+                                        onLoginSuccess()
+                                    }
+                                    .onFailure { exception ->
+                                        isLoading = false
+                                        errorMessage = exception.message ?: "Erro de login"
+                                    }
+                            }
                         } else {
                             errorMessage = "Preencha todos os campos"
                         }

@@ -24,7 +24,7 @@ object ApiClient {
         .writeTimeout(ApiConfig.TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .build()
     
-    private val retrofit = Retrofit.Builder()
+    internal val retrofit = Retrofit.Builder()
         .baseUrl(ApiConfig.BASE_URL)
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
@@ -32,9 +32,5 @@ object ApiClient {
     
     fun <T> createService(serviceClass: Class<T>): T {
         return retrofit.create(serviceClass)
-    }
-    
-    inline fun <reified T> createService(): T {
-        return retrofit.create(T::class.java)
     }
 }
