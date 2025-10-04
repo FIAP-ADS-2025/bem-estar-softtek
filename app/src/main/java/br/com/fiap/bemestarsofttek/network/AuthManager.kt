@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import android.util.Log
 import br.com.fiap.bemestarsofttek.network.dto.LoginRequest
 import br.com.fiap.bemestarsofttek.network.dto.LoginResponse
+import br.com.fiap.bemestarsofttek.network.dto.RegisterRequest
+import br.com.fiap.bemestarsofttek.network.dto.RegisterResponse
 import br.com.fiap.bemestarsofttek.network.service.AuthService
 import retrofit2.Response
 
@@ -35,6 +37,27 @@ class AuthManager(private val context: Context) {
                 }
             } else {
                 Result.failure(Exception("Erro de autenticação: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun register(name: String, email: String, password: String): Result<RegisterResponse> {
+        return try {
+            val registerRequest = RegisterRequest(name, email, password)
+            val response: Response<RegisterResponse> = authService.register(registerRequest)
+            
+            if (response.isSuccessful) {
+                val registerResponse = response.body()
+                if (registerResponse != null) {
+                    Log.d("AuthManager", "Usuário cadastrado: ${registerResponse.email}")
+                    Result.success(registerResponse)
+                } else {
+                    Result.failure(Exception("Resposta vazia do servidor"))
+                }
+            } else {
+                Result.failure(Exception("Erro no cadastro: ${response.code()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)

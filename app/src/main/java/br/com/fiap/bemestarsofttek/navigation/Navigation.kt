@@ -9,10 +9,12 @@ import br.com.fiap.bemestarsofttek.screens.AssessmentScreen
 import br.com.fiap.bemestarsofttek.screens.DashboardScreen
 import br.com.fiap.bemestarsofttek.screens.DetailsScreen
 import br.com.fiap.bemestarsofttek.screens.LoginScreen
+import br.com.fiap.bemestarsofttek.screens.RegisterScreen
 import br.com.fiap.bemestarsofttek.screens.ResourcesScreen
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
+    object Register : Screen("register")
     object Dashboard : Screen("dashboard")
     object Details : Screen("details")
     object Resources : Screen("resources")
@@ -33,6 +35,16 @@ fun BemEstarNavigation(
             LoginScreen(
                 navController = navController,
                 onLoginSuccess = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(Screen.Register.route) {
+            RegisterScreen(
+                navController = navController,
+                onRegisterSuccess = {
                     navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }

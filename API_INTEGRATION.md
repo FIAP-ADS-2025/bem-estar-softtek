@@ -47,6 +47,7 @@ Para controlar os logs de rede, altere o `LOG_LEVEL` no mesmo arquivo:
 
 ### ✅ Autenticação
 - Tela de login integrada
+- **Tela de cadastro integrada com validações**
 - Armazenamento seguro do token JWT
 - Verificação automática de login
 - **Redirecionamento automático para login em caso de 401**
@@ -63,13 +64,20 @@ Para controlar os logs de rede, altere o `LOG_LEVEL` no mesmo arquivo:
 - Timeout configurável
 - **Token adicionado automaticamente em todas as requisições**
 - **Interceptor de autenticação que detecta 401 e faz logout automático**
+- **Deserializador customizado para lidar com IDs MongoDB**
 
 ## Como Testar
 
+### Testando Cadastro
 1. **Inicie o servidor da API** na porta 8080
 2. **Execute o app** no emulador ou dispositivo
-3. **Faça login** com credenciais válidas
-4. **Complete uma avaliação** e verifique se foi enviada para a API
+3. **Toque em "Não tem uma conta? Cadastre-se"** na tela de login
+4. **Preencha o formulário** com dados válidos
+5. **Toque em "Criar Conta"** e aguarde o redirecionamento
+
+### Testando Login
+1. **Faça login** com as credenciais criadas no cadastro
+2. **Complete uma avaliação** e verifique se foi enviada para a API
 
 ### Testando Redirecionamento Automático (401)
 
@@ -77,6 +85,17 @@ Para controlar os logs de rede, altere o `LOG_LEVEL` no mesmo arquivo:
 2. **Simule token expirado** (pare a API ou use token inválido)
 3. **Tente fazer uma requisição** (completar avaliação)
 4. **O app deve redirecionar automaticamente** para a tela de login
+
+## Correções Implementadas
+
+### ✅ Erro de Parsing JSON (ID MongoDB)
+**Problema**: `Expected a string but was BEGIN_OBJECT at line 1 column 8 path $.id`
+
+**Solução**: 
+- Criado deserializador customizado `AssessmentResponseDeserializer`
+- Lida com diferentes formatos de ID (string ou objeto MongoDB)
+- Suporte para `{"$oid": "valor"}` e outros formatos
+- Fallback robusto para casos inesperados
 
 ## Próximos Passos
 

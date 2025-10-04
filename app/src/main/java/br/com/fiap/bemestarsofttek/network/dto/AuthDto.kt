@@ -10,3 +10,16 @@ data class LoginResponse(
     val email: String,
     val tipo: String
 )
+
+data class RegisterRequest(
+    val nome: String,
+    val email: String,
+    val senha: String
+)
+
+data class RegisterResponse(
+    val id: String,
+    val nome: String,
+    val email: String,
+    val message: String
+)

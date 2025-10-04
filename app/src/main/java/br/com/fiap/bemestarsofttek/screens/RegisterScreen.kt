@@ -5,12 +5,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -22,25 +22,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import br.com.fiap.bemestarsofttek.navigation.Screen
 import br.com.fiap.bemestarsofttek.network.AuthManager
 import br.com.fiap.bemestarsofttek.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(
+fun RegisterScreen(
     navController: NavController,
-    onLoginSuccess: () -> Unit
+    onRegisterSuccess: () -> Unit
 ) {
     val context = LocalContext.current
     val authManager = remember { AuthManager(context) }
     val coroutineScope = rememberCoroutineScope()
     
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var successMessage by remember { mutableStateOf("") }
     
     Column(
         modifier = Modifier
@@ -59,14 +63,14 @@ fun LoginScreen(
         )
         
         Text(
-            text = "Faça login para continuar",
+            text = "Crie sua conta para continuar",
             fontSize = 16.sp,
             color = Gray600,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
         )
         
-        // Formulário de Login
+        // Formulário de Cadastro
         Card(
             modifier = Modifier.fillMaxWidth(),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -75,6 +79,27 @@ fun LoginScreen(
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Campo Nome
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nome completo") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Person, contentDescription = "Nome")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    isError = name.isNotEmpty() && name.length < 3
+                )
+                
+                if (name.isNotEmpty() && name.length < 3) {
+                    Text(
+                        text = "Nome deve ter pelo menos 3 caracteres",
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
+                
                 // Campo Email
                 OutlinedTextField(
                     value = email,
@@ -85,8 +110,17 @@ fun LoginScreen(
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    isError = email.isNotEmpty() && !isValidEmail(email)
                 )
+                
+                if (email.isNotEmpty() && !isValidEmail(email)) {
+                    Text(
+                        text = "Digite um email válido",
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
                 
                 // Campo Senha
                 OutlinedTextField(
@@ -107,8 +141,48 @@ fun LoginScreen(
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    isError = password.isNotEmpty() && password.length < 6
                 )
+                
+                if (password.isNotEmpty() && password.length < 6) {
+                    Text(
+                        text = "Senha deve ter pelo menos 6 caracteres",
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
+                
+                // Campo Confirmar Senha
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirmar senha") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Lock, contentDescription = "Confirmar senha")
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                            Icon(
+                                if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                contentDescription = if (confirmPasswordVisible) "Ocultar senha" else "Mostrar senha"
+                            )
+                        }
+                    },
+                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    isError = confirmPassword.isNotEmpty() && password != confirmPassword
+                )
+                
+                if (confirmPassword.isNotEmpty() && password != confirmPassword) {
+                    Text(
+                        text = "As senhas não coincidem",
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
                 
                 // Mensagem de erro
                 if (errorMessage.isNotEmpty()) {
@@ -120,27 +194,42 @@ fun LoginScreen(
                     )
                 }
                 
-                // Botão de Login
+                // Mensagem de sucesso
+                if (successMessage.isNotEmpty()) {
+                    Text(
+                        text = successMessage,
+                        color = Color.Green,
+                        fontSize = 14.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                
+                // Botão de Cadastro
                 Button(
                     onClick = {
-                        if (email.isNotEmpty() && password.isNotEmpty()) {
+                        if (validateForm(name, email, password, confirmPassword)) {
                             isLoading = true
                             errorMessage = ""
+                            successMessage = ""
                             
                             // Chamada da API com coroutines
                             coroutineScope.launch {
-                                authManager.login(email, password)
-                                    .onSuccess { loginResponse ->
+                                authManager.register(name, email, password)
+                                    .onSuccess { registerResponse ->
                                         isLoading = false
-                                        onLoginSuccess()
+                                        successMessage = "Conta criada com sucesso! Redirecionando..."
+                                        
+                                        // Aguardar um pouco e redirecionar
+                                        kotlinx.coroutines.delay(2000)
+                                        onRegisterSuccess()
                                     }
                                     .onFailure { exception ->
                                         isLoading = false
-                                        errorMessage = exception.message ?: "Erro de login"
+                                        errorMessage = exception.message ?: "Erro no cadastro"
                                     }
                             }
                         } else {
-                            errorMessage = "Preencha todos os campos"
+                            errorMessage = "Preencha todos os campos corretamente"
                         }
                     },
                     modifier = Modifier
@@ -155,7 +244,7 @@ fun LoginScreen(
                         )
                     } else {
                         Text(
-                            text = "Entrar",
+                            text = "Criar Conta",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -164,16 +253,32 @@ fun LoginScreen(
             }
         }
         
-        // Link para cadastro
+        // Link para login
         TextButton(
-            onClick = { navController.navigate(Screen.Register.route) },
+            onClick = { navController.popBackStack() },
             modifier = Modifier.padding(top = 16.dp)
         ) {
             Text(
-                text = "Não tem uma conta? Cadastre-se",
+                text = "Já tem uma conta? Faça login",
                 color = Blue600,
                 fontSize = 14.sp
             )
         }
     }
+}
+
+private fun validateForm(
+    name: String,
+    email: String,
+    password: String,
+    confirmPassword: String
+): Boolean {
+    return name.length >= 3 &&
+            isValidEmail(email) &&
+            password.length >= 6 &&
+            password == confirmPassword
+}
+
+private fun isValidEmail(email: String): Boolean {
+    return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }

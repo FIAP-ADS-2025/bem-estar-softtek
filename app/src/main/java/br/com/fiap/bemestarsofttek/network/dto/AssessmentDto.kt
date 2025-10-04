@@ -1,5 +1,8 @@
 package br.com.fiap.bemestarsofttek.network.dto
 
+import br.com.fiap.bemestarsofttek.network.deserializer.AssessmentResponseDeserializer
+import com.google.gson.annotations.JsonAdapter
+
 data class AssessmentRequest(
     val employeeId: String,
     val assessmentDate: String, // ISO 8601 format
@@ -15,6 +18,7 @@ data class AssessmentRequest(
     val observations: String
 )
 
+@JsonAdapter(AssessmentResponseDeserializer::class)
 data class AssessmentResponse(
     val id: String,
     val employeeId: String,
@@ -34,6 +38,7 @@ data class AssessmentResponse(
     val createdAt: String,
     val updatedAt: String
 )
+
 
 data class EmojiChoiceDto(
     val displayName: String,

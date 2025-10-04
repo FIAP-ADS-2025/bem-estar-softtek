@@ -1,5 +1,6 @@
 package br.com.fiap.bemestarsofttek.repository
 
+import android.util.Log
 import br.com.fiap.bemestarsofttek.network.ApiClient
 import br.com.fiap.bemestarsofttek.network.dto.AssessmentRequest
 import br.com.fiap.bemestarsofttek.network.dto.AssessmentResponse
@@ -41,18 +42,27 @@ class AssessmentRepository {
     
     suspend fun createAssessment(assessment: AssessmentRequest): Result<AssessmentResponse> {
         return try {
+            Log.d("AssessmentRepository", "Enviando assessment: $assessment")
             val response = assessmentService.createAssessment(assessment)
+            Log.d("AssessmentRepository", "Resposta recebida - Código: ${response.code()}")
+            Log.d("AssessmentRepository", "Resposta body: ${response.body()}")
+            Log.d("AssessmentRepository", "Resposta error: ${response.errorBody()?.string()}")
+            
             if (response.isSuccessful) {
                 val createdAssessment = response.body()
                 if (createdAssessment != null) {
+                    Log.d("AssessmentRepository", "Assessment criado com sucesso: ${createdAssessment.id}")
                     Result.success(createdAssessment)
                 } else {
+                    Log.e("AssessmentRepository", "Resposta vazia do servidor")
                     Result.failure(Exception("Resposta vazia do servidor"))
                 }
             } else {
-                Result.failure(Exception("Erro ao criar assessment: ${response.code()}"))
+                Log.e("AssessmentRepository", "Erro HTTP: ${response.code()} - ${response.errorBody()?.string()}")
+                Result.failure(Exception("Erro ao criar assessment: ${response.code()} - ${response.errorBody()?.string()}"))
             }
         } catch (e: Exception) {
+            Log.e("AssessmentRepository", "Erro na requisição", e)
             Result.failure(e)
         }
     }
