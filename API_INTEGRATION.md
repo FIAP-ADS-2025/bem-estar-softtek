@@ -49,6 +49,7 @@ Para controlar os logs de rede, altere o `LOG_LEVEL` no mesmo arquivo:
 - Tela de login integrada
 - Armazenamento seguro do token JWT
 - Verificação automática de login
+- **Redirecionamento automático para login em caso de 401**
 
 ### ✅ Assessments
 - Envio de avaliações para a API
@@ -60,6 +61,8 @@ Para controlar os logs de rede, altere o `LOG_LEVEL` no mesmo arquivo:
 - OkHttp para interceptors e logging
 - Gson para serialização JSON
 - Timeout configurável
+- **Token adicionado automaticamente em todas as requisições**
+- **Interceptor de autenticação que detecta 401 e faz logout automático**
 
 ## Como Testar
 
@@ -67,6 +70,13 @@ Para controlar os logs de rede, altere o `LOG_LEVEL` no mesmo arquivo:
 2. **Execute o app** no emulador ou dispositivo
 3. **Faça login** com credenciais válidas
 4. **Complete uma avaliação** e verifique se foi enviada para a API
+
+### Testando Redirecionamento Automático (401)
+
+1. **Faça login** no app
+2. **Simule token expirado** (pare a API ou use token inválido)
+3. **Tente fazer uma requisição** (completar avaliação)
+4. **O app deve redirecionar automaticamente** para a tela de login
 
 ## Próximos Passos
 

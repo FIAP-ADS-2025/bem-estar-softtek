@@ -2,6 +2,7 @@ package br.com.fiap.bemestarsofttek.network
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import br.com.fiap.bemestarsofttek.network.dto.LoginRequest
 import br.com.fiap.bemestarsofttek.network.dto.LoginResponse
 import br.com.fiap.bemestarsofttek.network.service.AuthService
@@ -24,8 +25,10 @@ class AuthManager(private val context: Context) {
             if (response.isSuccessful) {
                 val loginResponse = response.body()
                 if (loginResponse != null) {
+                    Log.d("AuthManager", "Token recebido: ${loginResponse.token}")
                     saveToken(loginResponse.token)
                     saveEmail(loginResponse.email)
+                    Log.d("AuthManager", "Token salvo com sucesso")
                     Result.success(loginResponse)
                 } else {
                     Result.failure(Exception("Resposta vazia do servidor"))
@@ -39,19 +42,27 @@ class AuthManager(private val context: Context) {
     }
     
     fun getToken(): String? {
-        return prefs.getString(TOKEN_KEY, null)
+        val token = prefs.getString(TOKEN_KEY, null)
+        Log.d("AuthManager", "Token recuperado: ${token?.take(20)}...")
+        return token
     }
     
     fun getEmail(): String? {
-        return prefs.getString(EMAIL_KEY, null)
+        val email = prefs.getString(EMAIL_KEY, null)
+        Log.d("AuthManager", "Email recuperado: $email")
+        return email
     }
     
     fun isLoggedIn(): Boolean {
-        return getToken() != null
+        val loggedIn = getToken() != null
+        Log.d("AuthManager", "Usuário logado: $loggedIn")
+        return loggedIn
     }
     
     fun logout() {
+        Log.d("AuthManager", "Fazendo logout...")
         prefs.edit().clear().apply()
+        Log.d("AuthManager", "Logout concluído")
     }
     
     private fun saveToken(token: String) {

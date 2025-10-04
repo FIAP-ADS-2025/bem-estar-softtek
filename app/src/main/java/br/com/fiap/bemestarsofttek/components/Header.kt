@@ -3,17 +3,21 @@ package br.com.fiap.bemestarsofttek.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.SentimentSatisfied
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.com.fiap.bemestarsofttek.navigation.Screen
+import br.com.fiap.bemestarsofttek.network.AuthManager
 import br.com.fiap.bemestarsofttek.ui.theme.Blue600
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,6 +26,8 @@ fun Header(
     currentRoute: String,
     navController: NavController
 ) {
+    val context = LocalContext.current
+    val authManager = remember { AuthManager(context) }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(0.dp),
@@ -35,22 +41,44 @@ fun Header(
             // Logo e título
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.SentimentSatisfied,
-                    contentDescription = "Logo",
-                    tint = Color.White,
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "BemEstar Softtek",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.SentimentSatisfied,
+                        contentDescription = "Logo",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "BemEstar Softtek",
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
+                // Botão de logout
+                IconButton(
+                    onClick = {
+                        authManager.logout()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ExitToApp,
+                        contentDescription = "Logout",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.height(16.dp))

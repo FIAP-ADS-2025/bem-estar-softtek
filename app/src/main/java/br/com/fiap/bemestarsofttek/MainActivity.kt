@@ -9,6 +9,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -18,12 +20,19 @@ import br.com.fiap.bemestarsofttek.components.Header
 import br.com.fiap.bemestarsofttek.navigation.BemEstarNavigation
 import br.com.fiap.bemestarsofttek.navigation.Screen
 import br.com.fiap.bemestarsofttek.network.AuthManager
+import br.com.fiap.bemestarsofttek.network.ApiClient
+import br.com.fiap.bemestarsofttek.network.AuthEventBus
+import br.com.fiap.bemestarsofttek.network.AuthEvent
 import br.com.fiap.bemestarsofttek.ui.theme.BemEstarSofttekTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Inicializar ApiClient com contexto
+        ApiClient.initialize(this)
+        
         setContent {
             BemEstarSofttekTheme {
                 BemEstarApp()
@@ -41,12 +50,29 @@ fun BemEstarApp() {
     val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Login.route
     
     // Verificar se o usuário está logado
-    val isLoggedIn = remember { authManager.isLoggedIn() }
+    val isLoggedIn by remember { mutableStateOf(authManager.isLoggedIn()) }
     
-    if (isLoggedIn && currentRoute == Screen.Login.route) {
-        // Se está logado mas na tela de login, navegar para dashboard
-        navController.navigate(Screen.Dashboard.route) {
-            popUpTo(Screen.Login.route) { inclusive = true }
+    // Efeito para verificar login quando a tela mudar
+    LaunchedEffect(currentRoute) {
+        if (authManager.isLoggedIn() && currentRoute == Screen.Login.route) {
+            // Se está logado mas na tela de login, navegar para dashboard
+            navController.navigate(Screen.Dashboard.route) {
+                popUpTo(Screen.Login.route) { inclusive = true }
+            }
+        }
+    }
+    
+    // Efeito para escutar eventos de logout (401)
+    LaunchedEffect(Unit) {
+        AuthEventBus.subscribe { event ->
+            when (event) {
+                is AuthEvent.LogoutRequired -> {
+                    // Redirecionar para login quando receber 401
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            }
         }
     }
     

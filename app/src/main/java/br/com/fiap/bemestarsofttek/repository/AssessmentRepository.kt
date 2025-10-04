@@ -8,9 +8,9 @@ import br.com.fiap.bemestarsofttek.network.service.AssessmentService
 class AssessmentRepository {
     private val assessmentService: AssessmentService = ApiClient.createService(AssessmentService::class.java)
     
-    suspend fun getAllAssessments(token: String): Result<List<AssessmentResponse>> {
+    suspend fun getAllAssessments(): Result<List<AssessmentResponse>> {
         return try {
-            val response = assessmentService.getAllAssessments("Bearer $token")
+            val response = assessmentService.getAllAssessments()
             if (response.isSuccessful) {
                 Result.success(response.body() ?: emptyList())
             } else {
@@ -21,9 +21,9 @@ class AssessmentRepository {
         }
     }
     
-    suspend fun getAssessmentById(token: String, id: String): Result<AssessmentResponse> {
+    suspend fun getAssessmentById(id: String): Result<AssessmentResponse> {
         return try {
-            val response = assessmentService.getAssessmentById("Bearer $token", id)
+            val response = assessmentService.getAssessmentById(id)
             if (response.isSuccessful) {
                 val assessment = response.body()
                 if (assessment != null) {
@@ -39,9 +39,9 @@ class AssessmentRepository {
         }
     }
     
-    suspend fun createAssessment(token: String, assessment: AssessmentRequest): Result<AssessmentResponse> {
+    suspend fun createAssessment(assessment: AssessmentRequest): Result<AssessmentResponse> {
         return try {
-            val response = assessmentService.createAssessment("Bearer $token", assessment)
+            val response = assessmentService.createAssessment(assessment)
             if (response.isSuccessful) {
                 val createdAssessment = response.body()
                 if (createdAssessment != null) {
@@ -57,9 +57,9 @@ class AssessmentRepository {
         }
     }
     
-    suspend fun updateAssessment(token: String, assessment: AssessmentResponse): Result<AssessmentResponse> {
+    suspend fun updateAssessment(assessment: AssessmentResponse): Result<AssessmentResponse> {
         return try {
-            val response = assessmentService.updateAssessment("Bearer $token", assessment)
+            val response = assessmentService.updateAssessment(assessment)
             if (response.isSuccessful) {
                 val updatedAssessment = response.body()
                 if (updatedAssessment != null) {
@@ -75,9 +75,9 @@ class AssessmentRepository {
         }
     }
     
-    suspend fun deleteAssessment(token: String, id: String): Result<Unit> {
+    suspend fun deleteAssessment(id: String): Result<Unit> {
         return try {
-            val response = assessmentService.deleteAssessment("Bearer $token", id)
+            val response = assessmentService.deleteAssessment(id)
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {

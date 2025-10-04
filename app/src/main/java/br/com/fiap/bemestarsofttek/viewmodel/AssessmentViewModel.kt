@@ -25,12 +25,12 @@ class AssessmentViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
     
-    fun loadAssessments(token: String) {
+    fun loadAssessments() {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
             
-            repository.getAllAssessments(token)
+            repository.getAllAssessments()
                 .onSuccess { assessmentsList ->
                     _assessments.value = assessmentsList
                 }
@@ -42,14 +42,14 @@ class AssessmentViewModel : ViewModel() {
         }
     }
     
-    fun submitAssessment(token: String, dailyAssessment: DailyAssessment, employeeId: String) {
+    fun submitAssessment(dailyAssessment: DailyAssessment, employeeId: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
             
             val assessmentRequest = convertToAssessmentRequest(dailyAssessment, employeeId)
             
-            repository.createAssessment(token, assessmentRequest)
+            repository.createAssessment(assessmentRequest)
                 .onSuccess { createdAssessment ->
                     // Adicionar o novo assessment à lista
                     _assessments.value = _assessments.value + createdAssessment

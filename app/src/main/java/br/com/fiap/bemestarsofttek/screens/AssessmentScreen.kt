@@ -530,34 +530,27 @@ fun AssessmentScreen(
                 
                 Button(
                     onClick = {
-                        val token = authManager.getToken()
-                        if (token != null) {
-                            // Enviar para a API
-                            assessmentViewModel.submitAssessment(
-                                token = token,
-                                dailyAssessment = assessment,
-                                employeeId = "emp_001" // TODO: Obter do usuário logado
-                            )
-                            
-                            // Também salvar localmente
-                            val entry = MoodEntryEntity(
-                                date = LocalDate.now(),
-                                emoji = assessment.emojiChoice?.emoji ?: "🙂",
-                                mood = assessment.emojiChoice?.displayName ?: "Neutro",
-                                feeling = assessment.feelingChoice?.displayName ?: "Indefinido",
-                                workload = assessment.workloadLevel?.displayName ?: "Média",
-                                symptoms = assessment.hasSymptoms?.displayName ?: "Raramente",
-                                bossRelationship = assessment.relationshipWithBoss,
-                                colleaguesRelationship = assessment.relationshipWithColleagues,
-                                observations = assessment.observations
-                            )
-                            moodViewModel.addMoodEntry(entry)
-                            
-                            showSuccessDialog = true
-                        } else {
-                            errorMessage = "Usuário não autenticado"
-                            showErrorDialog = true
-                        }
+                        // Enviar para a API (token é adicionado automaticamente)
+                        assessmentViewModel.submitAssessment(
+                            dailyAssessment = assessment,
+                            employeeId = "emp_001" // TODO: Obter do usuário logado
+                        )
+                        
+                        // Também salvar localmente
+                        val entry = MoodEntryEntity(
+                            date = LocalDate.now(),
+                            emoji = assessment.emojiChoice?.emoji ?: "🙂",
+                            mood = assessment.emojiChoice?.displayName ?: "Neutro",
+                            feeling = assessment.feelingChoice?.displayName ?: "Indefinido",
+                            workload = assessment.workloadLevel?.displayName ?: "Média",
+                            symptoms = assessment.hasSymptoms?.displayName ?: "Raramente",
+                            bossRelationship = assessment.relationshipWithBoss,
+                            colleaguesRelationship = assessment.relationshipWithColleagues,
+                            observations = assessment.observations
+                        )
+                        moodViewModel.addMoodEntry(entry)
+                        
+                        showSuccessDialog = true
                     },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Blue600),
