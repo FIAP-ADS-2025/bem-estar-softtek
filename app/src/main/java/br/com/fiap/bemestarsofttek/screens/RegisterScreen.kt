@@ -1,7 +1,9 @@
 package br.com.fiap.bemestarsofttek.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -49,6 +51,7 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -254,14 +257,17 @@ fun RegisterScreen(
         }
         
         // Link para login
+        Spacer(modifier = Modifier.height(24.dp))
+        
         TextButton(
             onClick = { navController.popBackStack() },
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         ) {
             Text(
                 text = "Já tem uma conta? Faça login",
                 color = Blue600,
-                fontSize = 14.sp
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
             )
         }
     }

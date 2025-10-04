@@ -24,6 +24,9 @@ import br.com.fiap.bemestarsofttek.viewmodel.MoodEntryViewModel
 import br.com.fiap.bemestarsofttek.viewmodel.MoodEntryViewModelFactory
 import br.com.fiap.bemestarsofttek.viewmodel.AssessmentViewModel
 import br.com.fiap.bemestarsofttek.network.AuthManager
+import br.com.fiap.bemestarsofttek.network.repository.MoodEntryApiRepository
+import br.com.fiap.bemestarsofttek.network.dto.MoodEntryRequest
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,6 +41,7 @@ fun AssessmentScreen(
     )
     val assessmentViewModel: AssessmentViewModel = viewModel()
     val authManager = remember { AuthManager(context) }
+    val coroutineScope = rememberCoroutineScope()
     
     var assessment by remember { mutableStateOf(DailyAssessment()) }
     var showSuccessDialog by remember { mutableStateOf(false) }
@@ -530,27 +534,59 @@ fun AssessmentScreen(
                 
                 Button(
                     onClick = {
-                        // Enviar para a API (token é adicionado automaticamente)
-                        assessmentViewModel.submitAssessment(
-                            dailyAssessment = assessment,
-                            employeeId = "emp_001" // TODO: Obter do usuário logado
-                        )
-                        
-                        // Também salvar localmente
-                        val entry = MoodEntryEntity(
-                            date = LocalDate.now(),
-                            emoji = assessment.emojiChoice?.emoji ?: "🙂",
-                            mood = assessment.emojiChoice?.displayName ?: "Neutro",
-                            feeling = assessment.feelingChoice?.displayName ?: "Indefinido",
-                            workload = assessment.workloadLevel?.displayName ?: "Média",
-                            symptoms = assessment.hasSymptoms?.displayName ?: "Raramente",
-                            bossRelationship = assessment.relationshipWithBoss,
-                            colleaguesRelationship = assessment.relationshipWithColleagues,
-                            observations = assessment.observations
-                        )
-                        moodViewModel.addMoodEntry(entry)
-                        
-                        showSuccessDialog = true
+                        val token = authManager.getToken()
+                        if (token != null) {
+                            // Enviar assessment para a API
+                            assessmentViewModel.submitAssessment(
+                                dailyAssessment = assessment,
+                                employeeId = "emp_001" // TODO: Obter do usuário logado
+                            )
+                            
+                            // Enviar mood entry para a API também
+                            val moodEntryRequest = MoodEntryRequest(
+                                employeeId = "emp_001",
+                                date = LocalDate.now().toString(),
+                                emoji = assessment.emojiChoice?.emoji ?: "🙂",
+                                mood = assessment.emojiChoice?.displayName ?: "Neutro",
+                                feeling = assessment.feelingChoice?.displayName ?: "Indefinido",
+                                workload = assessment.workloadLevel?.displayName ?: "Média",
+                                symptoms = assessment.hasSymptoms?.displayName ?: "Raramente",
+                                bossRelationship = assessment.relationshipWithBoss,
+                                colleaguesRelationship = assessment.relationshipWithColleagues,
+                                observations = assessment.observations
+                            )
+                            
+                            // Enviar para API em background
+                            coroutineScope.launch {
+                                val moodRepository = MoodEntryApiRepository()
+                                moodRepository.createMoodEntry(token, moodEntryRequest)
+                                    .onSuccess {
+                                        println("✅ Mood entry enviada para API com sucesso!")
+                                    }
+                                    .onFailure { exception ->
+                                        println("❌ Erro ao enviar mood entry para API: ${exception.message}")
+                                    }
+                            }
+                            
+                            // Também salvar localmente
+                            val entry = MoodEntryEntity(
+                                date = LocalDate.now(),
+                                emoji = assessment.emojiChoice?.emoji ?: "🙂",
+                                mood = assessment.emojiChoice?.displayName ?: "Neutro",
+                                feeling = assessment.feelingChoice?.displayName ?: "Indefinido",
+                                workload = assessment.workloadLevel?.displayName ?: "Média",
+                                symptoms = assessment.hasSymptoms?.displayName ?: "Raramente",
+                                bossRelationship = assessment.relationshipWithBoss,
+                                colleaguesRelationship = assessment.relationshipWithColleagues,
+                                observations = assessment.observations
+                            )
+                            moodViewModel.addMoodEntry(entry)
+                            
+                            showSuccessDialog = true
+                        } else {
+                            errorMessage = "Usuário não autenticado"
+                            showErrorDialog = true
+                        }
                     },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Blue600),

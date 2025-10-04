@@ -1,6 +1,7 @@
 package br.com.fiap.bemestarsofttek.network
 
 import android.content.Context
+import br.com.fiap.bemestarsofttek.network.interceptor.DebugInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -26,6 +27,7 @@ object ApiClient {
     
     private fun createOkHttpClient(): OkHttpClient {
         val builder = OkHttpClient.Builder()
+            .addInterceptor(DebugInterceptor()) // Debug interceptor primeiro
             .addInterceptor(loggingInterceptor)
             .connectTimeout(ApiConfig.TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(ApiConfig.TIMEOUT_SECONDS, TimeUnit.SECONDS)
