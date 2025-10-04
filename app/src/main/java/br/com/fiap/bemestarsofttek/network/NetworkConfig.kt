@@ -2,10 +2,10 @@ package br.com.fiap.bemestarsofttek.network
 
 object NetworkConfig {
     // Configuração da API - Fácil de alterar
-    const val BASE_URL = "http://localhost:8080"
+    // const val BASE_URL = "http://localhost:8080"
     
     // Para desenvolvimento com emulador Android, use:
-    // const val BASE_URL = "http://10.0.2.2:8080"
+    const val BASE_URL = "http://10.0.2.2:8080"
     
     // Para dispositivo físico, use o IP da sua máquina:
     // const val BASE_URL = "http://192.168.1.100:8080"

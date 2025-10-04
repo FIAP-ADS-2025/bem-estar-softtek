@@ -7,18 +7,36 @@ Para alterar a URL da API, edite o arquivo `app/src/main/java/br/com/fiap/bemest
 
 ```kotlin
 object NetworkConfig {
-    // Para desenvolvimento local
-    const val BASE_URL = "http://localhost:8080"
+    // Para desenvolvimento local (não funciona no emulador)
+    // const val BASE_URL = "http://localhost:8080"
     
-    // Para emulador Android
-    // const val BASE_URL = "http://10.0.2.2:8080"
+    // Para emulador Android (RECOMENDADO)
+    const val BASE_URL = "http://10.0.2.2:8080"
     
     // Para dispositivo físico (substitua pelo IP da sua máquina)
     // const val BASE_URL = "http://192.168.1.100:8080"
 }
 ```
 
-### 2. Logs de Rede
+**⚠️ Importante**: 
+- **Emulador Android**: Use `10.0.2.2:8080` (já configurado)
+- **Dispositivo físico**: Use o IP da sua máquina na rede local
+- **localhost**: Não funciona no emulador Android
+
+### 2. Configuração de Segurança de Rede
+O app está configurado para permitir comunicação HTTP com localhost (necessário para desenvolvimento). A configuração está em `app/src/main/res/xml/network_security_config.xml`:
+
+```xml
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
+```
+
+### 3. Logs de Rede
 Para controlar os logs de rede, altere o `LOG_LEVEL` no mesmo arquivo:
 - `NONE`: Sem logs
 - `BASIC`: Logs básicos
