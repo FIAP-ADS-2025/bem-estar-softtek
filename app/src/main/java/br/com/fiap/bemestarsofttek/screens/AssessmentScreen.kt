@@ -22,6 +22,8 @@ import br.com.fiap.bemestarsofttek.ui.theme.*
 import br.com.fiap.bemestarsofttek.database.entity.MoodEntryEntity
 import br.com.fiap.bemestarsofttek.viewmodel.MoodEntryViewModel
 import br.com.fiap.bemestarsofttek.viewmodel.MoodEntryViewModelFactory
+import br.com.fiap.bemestarsofttek.viewmodel.AssessmentViewModel
+import br.com.fiap.bemestarsofttek.network.AuthManager
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,10 +33,20 @@ fun AssessmentScreen(
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
-    val viewModel: MoodEntryViewModel = viewModel(
+    val moodViewModel: MoodEntryViewModel = viewModel(
         factory = MoodEntryViewModelFactory(context.applicationContext as android.app.Application)
     )
+    val assessmentViewModel: AssessmentViewModel = viewModel()
+    val authManager = remember { AuthManager(context) }
+    
     var assessment by remember { mutableStateOf(DailyAssessment()) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    
+    // Observar estado do ViewModel
+    val isLoading by assessmentViewModel.isLoading.collectAsState()
+    val apiError by assessmentViewModel.errorMessage.collectAsState()
     
     LazyColumn(
         modifier = Modifier
@@ -518,32 +530,93 @@ fun AssessmentScreen(
                 
                 Button(
                     onClick = {
-                        val entry = MoodEntryEntity(
-                            date = LocalDate.now(),
-                            emoji = assessment.emojiChoice?.emoji ?: "🙂",
-                            mood = assessment.emojiChoice?.displayName ?: "Neutro",
-                            feeling = assessment.feelingChoice?.displayName ?: "Indefinido",
-                            workload = assessment.workloadLevel?.displayName ?: "Média",
-                            symptoms = assessment.hasSymptoms?.displayName ?: "Raramente",
-                            bossRelationship = assessment.relationshipWithBoss,
-                            colleaguesRelationship = assessment.relationshipWithColleagues,
-                            observations = assessment.observations
-                        )
-
-                        viewModel.addMoodEntry(entry)
-
-                        onComplete()
-                    }
-                    ,
+                        val token = authManager.getToken()
+                        if (token != null) {
+                            // Enviar para a API
+                            assessmentViewModel.submitAssessment(
+                                token = token,
+                                dailyAssessment = assessment,
+                                employeeId = "emp_001" // TODO: Obter do usuário logado
+                            )
+                            
+                            // Também salvar localmente
+                            val entry = MoodEntryEntity(
+                                date = LocalDate.now(),
+                                emoji = assessment.emojiChoice?.emoji ?: "🙂",
+                                mood = assessment.emojiChoice?.displayName ?: "Neutro",
+                                feeling = assessment.feelingChoice?.displayName ?: "Indefinido",
+                                workload = assessment.workloadLevel?.displayName ?: "Média",
+                                symptoms = assessment.hasSymptoms?.displayName ?: "Raramente",
+                                bossRelationship = assessment.relationshipWithBoss,
+                                colleaguesRelationship = assessment.relationshipWithColleagues,
+                                observations = assessment.observations
+                            )
+                            moodViewModel.addMoodEntry(entry)
+                            
+                            showSuccessDialog = true
+                        } else {
+                            errorMessage = "Usuário não autenticado"
+                            showErrorDialog = true
+                        }
+                    },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Blue600),
-                    enabled = assessment.emojiChoice != null && 
+                    enabled = !isLoading && assessment.emojiChoice != null && 
                             assessment.feelingChoice != null && 
                             assessment.workloadLevel != null
                 ) {
-                    Text("Enviar Avaliação", color = Color.White)
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White
+                        )
+                    } else {
+                        Text("Enviar Avaliação", color = Color.White)
+                    }
                 }
             }
+        }
+    }
+    
+    // Diálogo de sucesso
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            title = { Text("Avaliação Enviada!") },
+            text = { Text("Sua avaliação foi enviada com sucesso para o servidor.") },
+            confirmButton = {
+                TextButton(
+                    onClick = { 
+                        showSuccessDialog = false
+                        onComplete()
+                    }
+                ) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+    
+    // Diálogo de erro
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Erro") },
+            text = { Text(errorMessage) },
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+    
+    // Diálogo de erro da API
+    apiError?.let { error ->
+        LaunchedEffect(error) {
+            errorMessage = error
+            showErrorDialog = true
+            assessmentViewModel.clearError()
         }
     }
 }
